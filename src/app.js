@@ -1,4 +1,4 @@
-import express from " express"
+import express from "express"
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -15,4 +15,10 @@ app.use(express.static("public")); //serve static files from the public director
 
 app.use(cookieParser());
 
-export { app };
+//routes import
+import userRouter from "./routes/user.routes.js"
+
+//routes
+app.use("/api/v1/users", userRouter)
+
+export default app;
