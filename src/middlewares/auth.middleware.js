@@ -1,7 +1,7 @@
 import { User } from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
-import { ApiError } from '../utils/apiError.js';
-import { asyncHandler } from 'express-async-handler';
+import { ApiError } from '../utils/ApiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const verifyJWT = asyncHandler( async (req, res, next)=> {
     try {
@@ -10,7 +10,7 @@ export const verifyJWT = asyncHandler( async (req, res, next)=> {
             throw new ApiError(401, "Unauthorized access");
         }
     
-        const decodedToken = jwt.verify(token,process.env.ACESS_TOKEN_SECRET)
+        const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
     
         const user = await User.findById(decodedToken?._id).select("-password -refeshToken")
     
@@ -24,5 +24,4 @@ export const verifyJWT = asyncHandler( async (req, res, next)=> {
     } catch (error) {
         throw new ApiError(401, error.message || "Unauthorized access");
     }
-
 })

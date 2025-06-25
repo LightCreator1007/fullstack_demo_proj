@@ -93,7 +93,7 @@ const loginUser = asyncHandler( async(req,res) => {
     //send cookies
 
     const {email, username, password} = req.body;
-    if(!username || !email) {
+    if(!username && !email) {
         throw new ApiError(400, "Either Username or Email is required")
     }
 
@@ -160,4 +160,51 @@ const logoutUser = asyncHandler( async (req, res) => {
         .json(new ApiResponse(200, null, "User logged out successfully"))
 })
 
-export { registerUser, loginUser, logoutUser }
+const renewSession = asyncHandler(async (req, res) => {
+    //get the refresh token from cookies or body
+    const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken;
+    //check if you actually got it or not
+    if(!incomingRefreshToken) {
+        throw new ApiError(400, "Refresh token not provided");
+    }
+    try {
+        //verify the refresh Token
+        const decodedToken =jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        //find if the user exists
+        const user = await User.findById(decodedToken?._id);
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        //check if the incoming token is the same as the token in the db
+        if(incomingRefreshToken!==user.refreshToken) {
+            throw new ApiError(401, "Invalid refresh token");
+        }
+        //genertate new access and refresh tokens
+        const { accessToken, renewedRefreshToken } = await generateAccessAndRefreshTokens(user._id);
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refeshToken", renewedRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        accessToken,
+                        refreshToken: renewedRefreshToken
+                    },
+                    "Session renewed successfully",
+                )
+            )
+
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Unauthorized access");
+    }
+})
+
+export { registerUser, loginUser, logoutUser, renewSession }
