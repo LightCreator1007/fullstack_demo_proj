@@ -46,7 +46,8 @@ const registerUser = asyncHandler( async (req,res)=> {
     const avatarLocalPath = req.files?.avatar[0]?.path;
     //const coverImageLocalPath = req.files?.coverimage[0]?.path
 
-    let coverImageLocalPath;
+    let coverImageLocalPath
+
     if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
@@ -68,7 +69,7 @@ const registerUser = asyncHandler( async (req,res)=> {
         coverimage: coverImage?.url || "",
         email,
         password,
-        username: username.toLoweCase()
+        username: username.toLowerCase()
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -162,7 +163,7 @@ const logoutUser = asyncHandler( async (req, res) => {
 
 const renewSession = asyncHandler(async (req, res) => {
     //get the refresh token from cookies or body
-    const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken;
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
     //check if you actually got it or not
     if(!incomingRefreshToken) {
         throw new ApiError(400, "Refresh token not provided");
